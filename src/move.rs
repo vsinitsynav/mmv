@@ -20,7 +20,11 @@ pub fn try_to_move(
     force_flag: bool,
 ) -> Result<bool, String> {
     let source_file = source_path.file_name().unwrap().to_str().unwrap();
-    let destination_template = Path::new(destination_path).file_name().unwrap().to_str().unwrap();
+    let destination_template = Path::new(destination_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
 
     if !match_source_pattern(expression, source_file) {
         return Ok(false);
@@ -41,7 +45,7 @@ pub fn try_to_move(
     let destination = destination_directory.join(destination_file);
     let source = source_directory.join(source_file);
 
-    if destination.as_path().exists() && force_flag == false {
+    if destination.as_path().exists() && !force_flag {
         return Err([
             "Not able to replace existing file: ",
             destination.to_str().unwrap(),

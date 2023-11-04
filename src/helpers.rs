@@ -24,7 +24,7 @@ pub fn match_source_pattern(expression: &str, name: &str) -> bool {
     if markers.is_none() {
         return false;
     }
-    if markers.unwrap()[0] != name.to_string() {
+    if markers.unwrap()[0] != *name {
         return false;
     }
     true
@@ -36,8 +36,8 @@ fn test_match_source_pattern() {
     let name_1 = "abacaba";
     let name_2 = "baa";
 
-    assert_eq!(match_source_pattern(expression, name_1), true);
-    assert_eq!(match_source_pattern(expression, name_2), false);
+    assert!(match_source_pattern(expression, name_1));
+    assert!(!match_source_pattern(expression, name_2));
 }
 
 /// Replaces the `*` characters in the template with `(.*)` and the `.` character with `\\.`
@@ -51,7 +51,7 @@ fn test_match_source_pattern() {
 /// assert_eq!(get_expression(template), "a(.*)\\.(.*)");
 /// ```
 pub fn get_expression(template: &str) -> Result<String, String> {
-    let special_characters = vec!['^', '$', '+', '-', '?', '(', ')', '[', ']', '{', '}', '|'];
+    let special_characters = ['^', '$', '+', '-', '?', '(', ')', '[', ']', '{', '}', '|'];
     let mut expression = String::new();
     for character in template.chars() {
         if special_characters.contains(&character) {
@@ -102,9 +102,9 @@ fn test_get_expression() {
 pub fn create_marker(marker_number: usize) -> String {
     let mut res = "#".to_string();
     if marker_number >= 10 {
-        res.push_str("{");
+        res.push('{');
         res.push_str(marker_number.to_string().as_str());
-        res.push_str("}");
+        res.push('}');
     } else {
         res.push_str(marker_number.to_string().as_str());
     }

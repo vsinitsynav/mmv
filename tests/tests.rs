@@ -8,19 +8,39 @@ fn it_works() {
     let _ = std::fs::File::create("tmp/cbacabc.txt");
     let _ = std::fs::File::create("tmp/bbacabb.txt");
     assert_eq!(
-        try_to_move(Path::new("tmp/cbacabc.txt"), Path::new("tmp/a#1a.#3"), "c(.*)(.*)c\\.(.*)", false),
+        try_to_move(
+            Path::new("tmp/cbacabc.txt"),
+            Path::new("tmp/a#1a.#3"),
+            "c(.*)(.*)c\\.(.*)",
+            false
+        ),
         Ok(true)
     );
     assert_eq!(
-        try_to_move(Path::new("tmp/bbacabb.txt"), Path::new("tmp/b#11b.#2"), "a(.*)a\\.(.*)", false),
+        try_to_move(
+            Path::new("tmp/bbacabb.txt"),
+            Path::new("tmp/b#11b.#2"),
+            "a(.*)a\\.(.*)",
+            false
+        ),
         Ok(false)
     );
     assert_eq!(
-        try_to_move(Path::new("tmp/abacaba.txt"), Path::new("tmp/b#1b.#2"), "a(.*)a\\.(.*)", false),
+        try_to_move(
+            Path::new("tmp/abacaba.txt"),
+            Path::new("tmp/b#1b.#2"),
+            "a(.*)a\\.(.*)",
+            false
+        ),
         Err("Not able to replace existing file: tmp/bbacabb.txt".to_string())
     );
     assert_eq!(
-        try_to_move(Path::new("tmp/abacaba.txt"), Path::new("tmp/b#1b.#2"), "a(.*)a\\.(.*)", true),
+        try_to_move(
+            Path::new("tmp/abacaba.txt"),
+            Path::new("tmp/b#1b.#2"),
+            "a(.*)a\\.(.*)",
+            true
+        ),
         Ok(true)
     );
 
@@ -29,7 +49,12 @@ fn it_works() {
     let _ = std::fs::File::create("tmp/changed_A_filename.bin");
 
     assert_eq!(
-        try_to_move(Path::new("tmp/some_A_filename.bin"), Path::new("aboba/#1"), "(.*)", false),
+        try_to_move(
+            Path::new("tmp/some_A_filename.bin"),
+            Path::new("aboba/#1"),
+            "(.*)",
+            false
+        ),
         Err("Destination directory does not exist.".to_string())
     );
 

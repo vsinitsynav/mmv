@@ -71,7 +71,7 @@ pub fn run_pipeline() -> Result<(), String> {
     let source_path = Path::new(&cli.source);
     let destination_path = Path::new(&cli.destination);
     let source_template = source_path.file_name().unwrap().to_str().unwrap();
-    let expression = get_expression(&source_template)?;
+    let expression = get_expression(source_template)?;
     let mut moved_files = 0;
 
     for files in fs::read_dir(source_path.parent().unwrap()).unwrap() {
@@ -80,8 +80,8 @@ pub fn run_pipeline() -> Result<(), String> {
         if !file.path().is_dir() {
             match try_to_move(
                 &file.path(),
-                &destination_path,
-                &expression.as_str(),
+                destination_path,
+                expression.as_str(),
                 cli.force,
             ) {
                 Ok(flag) => sucessfully_moved = flag,
