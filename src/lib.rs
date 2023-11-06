@@ -76,17 +76,13 @@ pub fn run_pipeline() -> Result<(), MoveError> {
 
     for files in fs::read_dir(source_path.parent().unwrap()).unwrap() {
         let file = files.unwrap();
-        let sucessfully_moved: bool;
         if !file.path().is_dir() {
-            match try_to_move(
+            let sucessfully_moved = try_to_move(
                 &file.path(),
                 destination_path,
                 expression.as_str(),
                 cli.force,
-            ) {
-                Ok(flag) => sucessfully_moved = flag,
-                Err(err) => return Err(err),
-            }
+            )?;
             if sucessfully_moved {
                 moved_files += 1;
             }

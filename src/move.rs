@@ -64,7 +64,7 @@ pub fn try_to_move(
     if destination.as_path().exists() && !force_flag {
         return Err(MoveError::UnforcedReplace(destination));
     }
-    let _ = write!(stdout(), "{:?} -> {:?}", source, destination);
+    let _ = writeln!(stdout(), "{:?} -> {:?}", source, destination);
 
     match fs::rename(source, destination) {
         Ok(()) => Ok(true),
