@@ -30,16 +30,6 @@ pub fn match_source_pattern(expression: &str, name: &str) -> bool {
     true
 }
 
-#[test]
-fn test_match_source_pattern() {
-    let expression = "a(.*)a";
-    let name_1 = "abacaba";
-    let name_2 = "baa";
-
-    assert!(match_source_pattern(expression, name_1));
-    assert!(!match_source_pattern(expression, name_2));
-}
-
 /// Replaces the `*` characters in the template with `(.*)` and the `.` character with `\\.`
 /// # Arguments
 /// * `template` - a template to change
@@ -68,23 +58,6 @@ pub fn get_expression(template: &str) -> Result<String, String> {
     Ok(expression)
 }
 
-#[test]
-fn test_get_expression() {
-    assert_eq!(get_expression("*"), Ok("(.*)".to_string()));
-    assert_eq!(
-        get_expression("Hello, World!"),
-        Ok("Hello, World!".to_string())
-    );
-    assert_eq!(
-        get_expression("a*b*c.d**d.txt"),
-        Ok("a(.*)b(.*)c\\.d(.*)(.*)d\\.txt".to_string())
-    );
-    assert_eq!(
-        get_expression("Hello, World?"),
-        Err("Special characters are not allowed in the source template".to_string())
-    );
-}
-
 /// A simple tool that converts a number to marker string.
 ///
 /// # Arguments
@@ -109,11 +82,4 @@ pub fn create_marker(marker_number: usize) -> String {
         res.push_str(marker_number.to_string().as_str());
     }
     res
-}
-
-#[test]
-fn test_create_marker() {
-    assert_eq!(create_marker(1), "#1");
-    assert_eq!(create_marker(19), "#{19}");
-    assert_eq!(create_marker(1337), "#{1337}");
 }

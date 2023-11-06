@@ -2,7 +2,23 @@
 
 use crate::helpers::{create_marker, match_source_pattern};
 use regex::Regex;
-use std::{fs, path::Path};
+use std::{
+    fs,
+    io::{stdout, Write},
+    path::{Path, PathBuf},
+};
+
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum MoveError {
+    #[error("Not able to replace existing file: {0:?}")]
+    UnforcedReplace(PathBuf),
+    #[error("Destination directory does not exist.")]
+    InvalidDirectory,
+    #[error("Files for pattern {0:?} not found.")]
+    NonexistentPattern(String),
+}
 
 /// Checks if teplate mathes a filename.
 /// If so, tries to move source file to destination file parsed from the template and prints changed files.
@@ -18,7 +34,7 @@ pub fn try_to_move(
     destination_path: &Path,
     expression: &str,
     force_flag: bool,
-) -> Result<bool, String> {
+) -> Result<bool, MoveError> {
     let source_file = source_path.file_name().unwrap().to_str().unwrap();
     let destination_template = Path::new(destination_path)
         .file_name()
@@ -46,16 +62,12 @@ pub fn try_to_move(
     let source = source_directory.join(source_file);
 
     if destination.as_path().exists() && !force_flag {
-        return Err([
-            "Not able to replace existing file: ",
-            destination.to_str().unwrap(),
-        ]
-        .join(""));
+        return Err(MoveError::UnforcedReplace(destination));
     }
-    println!("{:?} -> {:?}", source, destination);
+    let _ = write!(stdout(), "{:?} -> {:?}", source, destination);
 
     match fs::rename(source, destination) {
         Ok(()) => Ok(true),
-        Err(_err) => Err("Destination directory does not exist.".to_string()),
+        Err(_err) => Err(MoveError::InvalidDirectory),
     }
 }

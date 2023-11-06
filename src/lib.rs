@@ -33,7 +33,7 @@ pub mod helpers;
 pub mod r#move;
 
 use crate::helpers::get_expression;
-use crate::r#move::try_to_move;
+use crate::r#move::{try_to_move, MoveError};
 
 #[derive(Parser, Debug)]
 /// Command line utility for mass moving or renaming files according to a template.
@@ -65,13 +65,13 @@ struct Cli {
 /// Reads command line arguments. Looks at all files in the current folder.
 /// Tries to move them by calling the try_to_move command.
 /// If no files are moved, it throws an error.
-pub fn run_pipeline() -> Result<(), String> {
+pub fn run_pipeline() -> Result<(), MoveError> {
     let cli: Cli = Cli::parse();
 
     let source_path = Path::new(&cli.source);
     let destination_path = Path::new(&cli.destination);
     let source_template = source_path.file_name().unwrap().to_str().unwrap();
-    let expression = get_expression(source_template)?;
+    let expression = get_expression(source_template).unwrap();
     let mut moved_files = 0;
 
     for files in fs::read_dir(source_path.parent().unwrap()).unwrap() {
@@ -93,7 +93,7 @@ pub fn run_pipeline() -> Result<(), String> {
         }
     }
     if moved_files == 0 {
-        return Err(["Files for pattern", source_template, "not found."].join(" "));
+        return Err(MoveError::NonexistentPattern(source_template.to_string()));
     }
     Ok(())
 }
