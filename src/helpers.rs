@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 
+use std::ffi::OsStr;
+
 use regex::Regex;
 
 /// Checks that the string fits the template. Returns true if it does. False otherwise.
@@ -40,9 +42,12 @@ pub fn match_source_pattern(expression: &str, name: &str) -> bool {
 ///
 /// assert_eq!(get_expression(template), "a(.*)\\.(.*)");
 /// ```
-pub fn get_expression(template: &str) -> Result<String, String> {
+pub fn get_expression(template: &OsStr) -> Result<String, String> {
     let special_characters = ['^', '$', '+', '-', '?', '(', ')', '[', ']', '{', '}', '|'];
     let mut expression = String::new();
+    let template = template
+        .to_str()
+        .ok_or("Invalid source filename template".to_string())?;
     for character in template.chars() {
         if special_characters.contains(&character) {
             return Err("Special characters are not allowed in the source template".to_string());

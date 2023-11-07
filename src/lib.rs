@@ -27,7 +27,8 @@
 #![forbid(unsafe_code)]
 
 use clap::Parser;
-use std::{fs, path::Path};
+use std::fs;
+use std::path::PathBuf;
 
 pub mod helpers;
 pub mod r#move;
@@ -52,10 +53,10 @@ use crate::r#move::{try_to_move, MoveError};
 /// path/to/some_A_filename.bin -> path2/to/changed_A_filename.bin
 struct Cli {
     /// Should be string. Pattern of files to move
-    source: String,
+    source: PathBuf,
 
     /// Should be string. Pattern of destination to move to
-    destination: String,
+    destination: PathBuf,
 
     /// Flag for overwriting files if they exist
     #[arg(short, long)]
@@ -68,18 +69,24 @@ struct Cli {
 pub fn run_pipeline() -> Result<(), MoveError> {
     let cli: Cli = Cli::parse();
 
-    let source_path = Path::new(&cli.source);
-    let destination_path = Path::new(&cli.destination);
-    let source_template = source_path.file_name().unwrap().to_str().unwrap();
-    let expression = get_expression(source_template).unwrap();
+    let source_template = cli.source.file_name().ok_or(MoveError::InvalidTemplate)?;
+    let expression = get_expression(source_template);
+    if expression.is_err() {
+        return Err(MoveError::InvalidTemplate);
+    }
+    let expression = expression.unwrap();
     let mut moved_files = 0;
+    let parent = cli.source.parent().ok_or(MoveError::InvalidTemplate)?;
+    if !parent.exists() {
+        return Err(MoveError::InvalidTemplate);
+    }
 
-    for files in fs::read_dir(source_path.parent().unwrap()).unwrap() {
+    for files in fs::read_dir(parent).unwrap() {
         let file = files.unwrap();
         if !file.path().is_dir() {
             let sucessfully_moved = try_to_move(
                 &file.path(),
-                destination_path,
+                &cli.destination,
                 expression.as_str(),
                 cli.force,
             )?;
@@ -89,7 +96,9 @@ pub fn run_pipeline() -> Result<(), MoveError> {
         }
     }
     if moved_files == 0 {
-        return Err(MoveError::NonexistentPattern(source_template.to_string()));
+        return Err(MoveError::NonexistentPattern(
+            source_template.to_os_string(),
+        ));
     }
     Ok(())
 }

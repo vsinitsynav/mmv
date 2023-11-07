@@ -3,6 +3,7 @@
 use crate::helpers::{create_marker, match_source_pattern};
 use regex::Regex;
 use std::{
+    ffi::OsString,
     fs,
     io::{stdout, Write},
     path::{Path, PathBuf},
@@ -14,10 +15,12 @@ use thiserror::Error;
 pub enum MoveError {
     #[error("Not able to replace existing file: {0:?}")]
     UnforcedReplace(PathBuf),
+    #[error("Source template is invalid.")]
+    InvalidTemplate,
     #[error("Destination directory does not exist.")]
     InvalidDirectory,
     #[error("Files for pattern {0:?} not found.")]
-    NonexistentPattern(String),
+    NonexistentPattern(OsString),
 }
 
 /// Checks if teplate mathes a filename.
@@ -36,12 +39,6 @@ pub fn try_to_move(
     force_flag: bool,
 ) -> Result<bool, MoveError> {
     let source_file = source_path.file_name().unwrap().to_str().unwrap();
-    let destination_template = Path::new(destination_path)
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap();
-
     if !match_source_pattern(expression, source_file) {
         return Ok(false);
     }
@@ -50,15 +47,23 @@ pub fn try_to_move(
         .unwrap()
         .captures(source_file)
         .unwrap();
-    let mut destination_file = destination_template.to_string();
+
+    let destination_template = destination_path.file_name();
+    if destination_template.is_none() {
+        return Err(MoveError::InvalidDirectory);
+    }
+    let mut destination_file = destination_template.unwrap().to_str().unwrap().to_string();
     for i in 1..markers.len() {
         destination_file = destination_file.replace(&create_marker(i), &markers[i]);
     }
 
     let source_directory = source_path.parent().unwrap();
-    let destination_directory = Path::new(destination_path).parent().unwrap();
+    let destination_directory = Path::new(destination_path).parent();
+    if destination_directory.is_none() {
+        return Err(MoveError::InvalidDirectory);
+    }
 
-    let destination = destination_directory.join(destination_file);
+    let destination = destination_directory.unwrap().join(destination_file);
     let source = source_directory.join(source_file);
 
     if destination.as_path().exists() && !force_flag {

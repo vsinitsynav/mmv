@@ -2,6 +2,7 @@
 
 use mmv::helpers::{create_marker, get_expression, match_source_pattern};
 use mmv::r#move::try_to_move;
+use std::ffi::OsStr;
 use std::path::Path;
 use tempdir::TempDir;
 
@@ -96,17 +97,17 @@ fn test_match_source_pattern() {
 
 #[test]
 fn test_get_expression() {
-    assert_eq!(get_expression("*"), Ok("(.*)".to_string()));
+    assert_eq!(get_expression(OsStr::new("*")), Ok("(.*)".to_string()));
     assert_eq!(
-        get_expression("Hello, World!"),
+        get_expression(OsStr::new("Hello, World!")),
         Ok("Hello, World!".to_string())
     );
     assert_eq!(
-        get_expression("a*b*c.d**d.txt"),
+        get_expression(OsStr::new("a*b*c.d**d.txt")),
         Ok("a(.*)b(.*)c\\.d(.*)(.*)d\\.txt".to_string())
     );
     assert_eq!(
-        get_expression("Hello, World?"),
+        get_expression(OsStr::new("Hello, World?")),
         Err("Special characters are not allowed in the source template".to_string())
     );
 }
